@@ -1,0 +1,95 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../bower_components/iron-list/iron-list.html">
+<link rel="import" href="../bower_components/paper-badge/paper-badge.html">
+
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="hw-insentive">
+  <template>
+    <style is="custom-style" include="shared-styles">
+      :host{
+        max-width: 800px;
+      }
+      .item {
+        padding: 20px;
+        background-color: white;
+        border: 1px solid #ddd;
+        cursor: pointer;
+        margin: 16px;
+        width: calc(100% - 32px)!important;
+        height: 100px;
+      }
+      .item:hover {
+        background-color: var(--google-grey-100);
+      }
+
+      .item:focus,
+      .item.selected:focus {
+        outline: 0;
+      }
+
+      /*.item.selected .star {
+        color: var(--paper-blue-600);
+      }*/
+
+      .item.selected {
+        background-color: var(--google-grey-100);
+      }
+      .badge-case{
+        width: 100px;
+      }
+      .badge-target{
+        display: inline-block;
+        width: 40px;
+        height: 1px;
+        margin: auto;
+      }
+      paper-badge{
+        --paper-badge-width:60px;
+        --paper-badge-height:60px;
+        /*--paper-badge-margin-left: -60px;*/
+        --paper-badge-margin-bottom: -30px;
+      }
+    </style>
+    
+    <iron-ajax url$="[[api_url]]/api/insentive/" auto
+               handle-as="json"
+               headers='{{credential}}' with-credentials
+               last-response="{{insentives}}"></iron-ajax>
+      <h3>獲得できるポイント</h3>
+      <iron-list items="[[insentives]]" as="item">
+        <template>
+          <section class="layout horizontal item">
+            <div class="badge-case">
+              <span id$="badge-target-{{index}}" class="badge-target"></span>
+              <paper-badge label$="[[item.point]]pt" for$="badge-target-{{index}}">
+              </paper-badge>
+            </div>
+            <div class="flex-9">
+              <a href$="[[item.url]]">[[item.name]]</a><br>
+              <span>[[formatDate(item.disposingAt)]]</span>まで
+            </div>
+          </section>
+        </template>
+      </iron-list>
+  </template>
+<script>
+'use strict';
+
+class HwInsentive {
+  beforeRegister() {
+    this.is = 'hw-insentive';
+    this.properties = {
+      insentives: {type:Array, value:[]}
+    };
+  }
+  
+  get behaviors(){ return [Polymer.HwBehavior]; }
+
+}
+
+Polymer(HwInsentive);
+</script>
+
+</dom-module>

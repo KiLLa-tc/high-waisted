@@ -1,0 +1,89 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../bower_components/iron-list/iron-list.html">
+
+<link rel="import" href="../bower_components/paper-toast/paper-toast.html">
+<link rel="import" href="../bower_components/paper-badge/paper-badge.html">
+<link rel="import" href="../bower_components/paper-material/paper-material.html">
+
+<link rel="import" href="hw-behavior.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="hw-loyalty-log">
+  <template>
+    <style is="custom-style" include="shared-styles">
+      :host{
+        max-width: 800px;
+      }
+      .item {
+        padding: 16px 22px;
+        border-bottom: 1px solid #DDD;
+        width: calc(100% - 32px);
+      }
+    </style>
+    
+    <iron-ajax url="[[api_url]]/api/loyalty/" handle-as="json" auto
+               headers='{{credential}}' with-credentials
+               last-response="{{loyalties}}"></iron-ajax>
+               
+    <iron-ajax url$="[[api_url]]/api/loyalty/check" handle-as="json"
+               headers='{{credential}}' with-credentials
+               params="{{params}}"
+               last-response="{{check}}"></iron-ajax>
+               
+      <h3>有効期限：<span>{{formatDate(check.disposingAt)}}</span></h3>
+      <iron-list items="[[loyalties]]" as="item">
+        <template>
+          <section class="horizontal layout item">
+            <div class="flex-2">
+                <span>[[formatDate(item.registeredAt)]]</span>
+            </div>
+            <div class="flex-4">
+              <span>[[registeredFor(item)]]</span>
+            </div>
+            <div class="flex">
+              <span class="label Blue">[[symbolizePoint(item)]]</span>
+            </div>
+            <div class="flex-5"></div>
+          </section>
+        </template>
+      </iron-list>
+    <paper-toast id="message" text="ポイントが追加されました。" duration="5000"></paper-toast>
+  </template>
+  
+<script>
+'use strict';
+
+class HwLoyaltyLog {
+  beforeRegister() {
+    this.is = 'hw-loyalty-log';
+    this.properties = {
+      loyalties:{value:[]},
+      hash:{ 
+        type:String, reflectToAttribute:true
+        // observer:"addLoyalty"
+      },
+      params:{value:{},notify:true}
+    };
+  }
+  get behaviors(){ return [Polymer.HwBehavior]; }
+
+  addLoyalty(){
+    if(!this.hash)return;
+    this.$.message.show();
+    this.set("params",{selected:new Date().getTime()});  //notify
+  }
+  registeredFor(item){
+    return (item.insentive)
+      ?item.insentive.name
+      :item.registeredFor;
+  }
+  symbolizePoint(item){
+    return (item.point<0?'':'+') + item.point + 'pt';
+  }
+}
+
+Polymer(HwLoyaltyLog);
+</script>
+
+</dom-module>

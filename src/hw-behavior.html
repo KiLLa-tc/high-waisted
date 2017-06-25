@@ -1,0 +1,61 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<script src="../bower_components/moment/min/moment.min.js"></script>
+<script>
+'use strict';
+
+Polymer.HwBehavior={
+  isCreated: false,
+  properties:{
+    api_url  :  { value:"http://192.168.2.101:8000"},	
+    base_url :  { value:"/"},
+    credential: { type:Object, value: null }
+  },
+  date(date){
+    return moment(date).format('YY/M/D');
+  },
+  created() {
+    if(Polymer.HwBehavior.isCreated)return;
+    Polymer.HwBehavior.properties.credential.value
+        =JSON.parse(localStorage.getItem("hw.credential"));
+  },
+  formatDate(date){
+    return date?moment(date).format('YY/M/D'):'';
+  },
+  formatDatetime(date){
+    return date?moment(date).format('YY/M/D h:m'):'';
+  },
+  submit(){
+    this.$$("form").submit();
+  },
+  toastMessage(message){
+    this.fire('iron-signal', {name: "message", data: message});
+  },
+  resetAuth(){
+    localStorage.removeItem("hw.credential");
+  },
+  message(message){
+    this.fire('iron-signal', {name: "message", data: message});
+  },
+  error(e, jx){
+    let message;
+    switch(jx.request.xhr.status){
+      case 400:
+        message="入力に間違いがあります。";break;
+      case 401:
+        this.fire('iron-signal', {name: "signin", data: true});
+        message="認証が必要です。";break;
+      case 403:
+        message="利用できません。";break;
+      case 409:
+        message="競合が発生しました。";break;
+      case 404:
+        message="送信先が見つかりません。";break;
+      case 500:
+      case 503:
+        message="サーバとの通信でエラーが発生しました。";break;
+    }
+    this.message(message);
+  }
+};
+</script>

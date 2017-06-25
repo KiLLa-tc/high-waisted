@@ -1,0 +1,134 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-localstorage/iron-localstorage.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../bower_components/iron-form/iron-form.html">
+<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/iron-signals/iron-signals.html">
+
+<link rel="import" href="../bower_components/paper-toast/paper-toast.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/neon-animation/neon-animation.html">
+
+<link rel="import" href="hw-behavior.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="hw-register">
+  <template>
+    <style is="custom-style" include="shared-styles iron-flex iron-flex-alignment">
+      neon-animatable{
+          height: 100%;
+      }
+      .page{
+        padding: 1rem;
+        background: #fff;
+      }
+    </style>
+
+      <neon-animated-pages selected="{{selected}}" class="flex"
+                           entry-animation="slide-from-right-animation" 
+                           exit-animation="slide-left-animation">
+        <neon-animatable>
+          <section class="page">
+            <form name="activation-form" is="iron-form" method="POST"
+                  action$="[[api_url]]/api/user/activate"
+                  on-iron-form-response="activated"
+                  on-iron-form-error="fail">
+              <h3>アクティベーションしてください。</h3>
+              <!--<p>ご連絡いたしました会員番号と初期パスコードを</p>-->
+              <div class="horizontal-section">
+                <paper-input name="no" label="会員番号" pattern="[0-9]+" required value="{{no}}" ></paper-input>
+                <paper-input name="initPass" label="初期パスコード" pattern="[0-9]+" required></paper-input>
+              </div>
+              <br>
+              <div class="layout horizontal center-justified">
+                <paper-button raised class="Blue" on-click="activate">
+                  アクティベーション
+                </paper-button>
+              </div>
+            </form>
+          </section>
+        </neon-animatable>
+
+        <neon-animatable>
+          <section class="page">
+            <form name="registration-form" is="iron-form" method="POST"
+                  action$="[[api_url]]/api/user/"
+                  on-iron-form-response="complete"
+                  on-iron-form-error="fail">
+              <h3>会員情報を入力してください。</h3>
+              <div class="horizontal-section">
+                <input type="hidden" name="key" value="{{key}}"/>
+                <input type="hidden" name="no" value="{{no}}"/>
+                <paper-input name="username" label="ユーザ名" pattern="[a-zA-Z0-9_\-.]+" required></paper-input>
+                <paper-input name="email" type="email" label="メールアドレス" required></paper-input>
+                <paper-input name="password" type="password" label="パスワード" required
+                            pattern="[a-zA-Z0-9 -/:-@\[-\`\{-\~]+" value="{{password}}"></paper-input>
+                <paper-input name="passwordConfirm" type="password" label="確認" required
+                            pattern="[a-zA-Z0-9 -/:-@\[-\`\{-\~]+" value="{{passwordConfirm}}"></paper-input>
+              </div>
+              <br>
+              <div class="layout horizontal center-justified">
+                <paper-button raised class="Blue" on-click="register">
+                  <iron-icon icon="icons:check"></iron-icon>登録
+                </paper-button>
+              </div>
+            </form>
+          </section>
+        </neon-animatable>
+      </neon-animated-pages>
+
+      <iron-localstorage name="hw.credential" value="{{credential}}"></iron-localstorage>
+  </template>
+<script>
+'use strict';
+
+class HwRegister {
+  beforeRegister() {
+    this.is = 'hw-register';
+    this.properties = {
+      selected: {value:0},
+      key:      {type:String, value:null, notify: true },
+      credential:{type:Object, value:{}}
+    };
+  }
+  get behaviors(){ return [Polymer.HwBehavior]; }
+
+  activate(){
+    this.$$('[name="activation-form"]').submit();
+  }
+  register(){
+    this.$$('[name="registration-form"]').submit();
+  }
+  activated(e,ajx){
+    this.set("key",e.detail.response.key);
+    this.set("selected",1);
+  }
+  complete(e,ajx){
+    localStorage.setItem("hw.credential", JSON.stringify({
+      "x-auth-token":e.detail.response.apiKey
+    }));
+    location.href="./";
+  }
+  fail(e,jx){
+    let message;
+    switch(jx.request.xhr.response.message){
+      case "EmailInUse":
+        message="このメールアドレスはすでに登録されています。";break;
+      case "InValidNo":
+        message="この会員番号はすでに登録されています。";break;
+      case "ActivationExpired":
+        message="ページを再読み込みして、アクティベーションからやりなおしてください。";break;
+      deault:
+        return this.error(e,jx);
+    }
+    this.message(message);
+  }
+}
+
+Polymer(HwRegister);
+</script>
+
+</dom-module>

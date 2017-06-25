@@ -1,0 +1,135 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../bower_components/iron-signals/iron-signals.html">
+<link rel="import" href="../bower_components/iron-form/iron-form.html">
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">"
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-toast/paper-toast.html">
+
+<link rel="import" href="hw-behavior.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="hw-checksheet">
+  <template>
+    <style is="custom-style" include="shared-styles iron-flex iron-flex-alignment">
+      paper-checkbox {
+        display: block;
+        margin-bottom: 40px;
+      }
+      paper-material{
+        margin: 1rem;
+        padding: 1rem;
+      }
+  </style>
+    <iron-ajax id="getChecksheet"
+               url$="[[api_url]]/api/checksheet/" 
+               headers='{{credential}}' handle-as="json" auto
+               params="{{params(selectedAt)}}"
+               last-response="{{checksheets}}" on-response="checkCompleted"
+               on-error="error"></iron-ajax>
+    <iron-ajax url$="{{urlPatch}}" params="{{paramsPatch}}" auto
+               headers='{{credential}}' 
+               method="PATCH" handle-as="json" on-error="error"></iron-ajax>
+    <iron-ajax id="getAdvice" 
+               url$="[[api_url]]/api/advice/" auto
+               headers='{{credential}}' handle-as="json"
+               last-response="{{advice}}" on-error="error"></iron-ajax>
+
+    <form is="iron-form" id="checksheetForm"
+          action$="[[api_url]]/api/loyalty/" method="PUT"
+          headers='{{credential}}'
+          on-iron-form-response="complete"
+          on-iron-form-error="failComplete" on-error="error">
+      <!--<input type="hidden" name="_method" value="PUT">-->
+      <paper-material>
+
+        <h3>今日の課題</h3>
+        <div class="horizontal-section">
+          <template is="dom-repeat" items="{{checksheets}}">
+            <paper-checkbox checked="{{item.checked}}"
+              data-checksheet-id$="[[item.id]]"
+              on-change="change">[[item.trial.body]]</paper-checkbox>
+          </template>
+        </div>
+      </paper-material>
+      <br>
+      <div class="layout horizontal center-justified">
+        <!--<paper-input label="キーワード" name="keyword" value="{{keyword}}"></paper-input>-->
+        <paper-button raised on-click="submit" class="Teal" disabled="{{disabled}}">
+          <iron-icon icon="check"></iron-icon>complete
+        </paper-button>
+        <p>{{hint}}</p>
+      </div>
+    </form>
+      
+    <paper-dialog modalentry-animation="scale-up-animation" exit-animation="fade-out-animation">
+      <h2>ひとことアドバイス</h2>
+      <p>[[advice.body]]</p>
+      <p><a href$="[[advice.link]]" target="_blank">もっと詳しく</a></p>
+      <div class="buttons">
+        <paper-button dialog-dismiss>閉じる</paper-button>
+      </div>
+    </paper-dialog>
+
+  </template>
+<script>
+'use strict';
+
+class HwChecksheet {
+  beforeRegister() {
+    this.is = 'hw-checksheet';
+    this.properties = {
+      checksheets: {type:Array,value:[], notify: true },
+      checksheetId: {type:Number,value:null,notify: true},
+      paramsPatch: {type:Object, notify:true},
+      selectedAt: {value:0, notify:true},
+      disabled: {value: true}
+    };
+  }
+  
+  get behaviors(){ return [Polymer.HwBehavior]; }
+  
+  params(selectedAt){
+      return {selectedAt:selectedAt};
+  }
+  checkCompleted(){
+    let isComp=this.checksheets.reduce((prev,cur)=>{
+      return prev &= cur.checked;
+    },true);
+    this.set("disabled", !isComp);
+  }
+  change(e){
+    /* Patch checkd*/
+    this.urlPatch = this.api_url+"/api/checksheet/"+e.target.dataset.checksheetId;
+    this.set('paramsPatch',{
+      checked:e.target.checked
+    });
+    /*Check all checked*/
+    let isComp=this.checksheets.reduce((prev,cur)=>{
+      return prev &= cur.checked;
+    },true);
+    this.set("disabled", !isComp);
+  }
+  validate(){
+    return Boolean(this.checksheetId);
+  }
+
+  complete(e,res){
+    this.fire('iron-signal', {name: "message", data: "ポイントが追加されました。"});
+    this.$$("paper-dialog").open();
+    this.set("selectedAt",new Date().getTime());  //notify
+  }
+  failComplete(e,res){
+    this.fire('iron-signal', {name: "message", data: "本日のチェックシートは終了しました。"});
+  }
+  undoCheck(e){
+    e.target.dataset.checked=!e.target.dataset.checked;
+  }
+}
+
+Polymer(HwChecksheet);
+</script>
+</dom-module>

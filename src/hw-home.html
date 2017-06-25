@@ -1,0 +1,184 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/app-layout/app-grid/app-grid-style.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../bower_components/iron-list/iron-list.html">
+<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../bower_components/paper-card/paper-card.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-tabs/paper-tabs.html">
+
+<link rel="import" href="hw-behavior.html">
+<!--<link rel="import" href="hw-free-content.html">-->
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="hw-home">
+
+  <template>
+    <style is="custom-style" include="shared-styles app-grid-style">
+      @media all and (min-width: 0) and (max-width: 600px) and (orientation: portrait) { 
+        :host {
+          --app-grid-columns: 1;
+          --app-grid-gutter: 10px;
+          /*--app-grid-item-height: 240px;*/
+        }
+      }
+      @media all and (min-width: 601px){ 
+        :host {
+          --app-grid-columns: 2;
+          --app-grid-gutter: 12px;
+          /*--app-grid-item-height: 240px;*/
+        }
+      }
+
+    </style>
+
+		<iron-ajax url="{{api_url}}/api/loyalty/check" handle-as="json"
+               headers='{{credential}}' auto
+               last-response="{{check}}"></iron-ajax>
+    <!--Main Area-->
+
+      <section class="app-grid">
+          <paper-card id="loyalty"
+                      heading="[[user.lastname]] [[user.firstname]] 様">
+              <div class="card-content">
+                <div>
+                  <iron-icon icon="grade" class="big"></iron-icon>
+                  現在のランク：<span>{{check.point}}</span>pt
+                </div>
+                <div>
+                  <iron-icon icon="loyalty" class="big"></iron-icon>
+                  現在のポイント：<span>{{check.point}}</span>pt
+                </div>
+              </div>
+          </paper-card>
+          
+          <paper-card id="message" heading="新着メッセージ"
+                      on-tap="view">
+            <iron-ajax url="{{api_url}}/api/message/latest" handle-as="json"
+                       headers='{{credential}}' auto
+                       last-response="{{message}}"></iron-ajax>
+            <div class="card-content">
+              <template is="dom-if" if="{{mesaage}}">
+                <iron-icon icon="mail" class="big"></iron-icon>
+                <p>[[message.body]]</p>
+              </template>
+            </div>
+          </paper-card>
+
+          <iron-ajax url="[[api_url]]/api/freecontent/latest" handle-as="json" auto
+                    headers='{{credential}}' with-credentials 
+                    last-response="{{content}}"></iron-ajax>
+          <paper-card>
+            <div class="card-content">
+              <h2><iron-icon icon="info-outline" class="big"></iron-icon>News</h2>
+              <template is="dom-if" if="{{content}}">
+                <section>
+                  <h4>{{date(content.postedAt)}}</h4>
+                  <p inner-h-t-m-l="{{content.content}}"></p>
+                </section>
+              </template>
+            </div>
+          </paper-card>
+
+          <paper-card id="appoint" heading="次回のご予約">
+            <iron-ajax url="[[api_url]]/api/visithistory/next" handle-as="json" auto
+                       headers='{{credential}}' with-credentials
+                       last-response="{{appoint}}"></iron-ajax>
+            <div class="card-content">
+              <iron-icon icon="assignment" class="big"></iron-icon>
+              <template is="dom-if" if="{{!appoint}}">
+                ご予約がありません。
+              </template>
+              <template is="dom-if" if="{{appoint}}">
+                <table class="table table-condensed">
+                  <tr><th>予約日</th><td>[[date(appoint.startAt)]]</td></tr>
+                  <tr><th>時間</th><td>[[time(appoint.startAt,appoint.endAt)]]</td></tr>
+                  <tr><th>担当</th><td>
+                    <span>[[appoint.pic.picGrade.name]]</span>&nbsp;
+                    <span>[[appoint.pic.lastName]]</span><span>[[appoint.pic.firstName]]</span>
+                    </td>
+                  </tr>
+                </table>
+              </template>
+            </div>
+          </paper-card>
+
+          <paper-material>
+            <!--<iron-ajax url="[[api_url]]/external/feed/navar" auto
+                       headers='{{credential}}' with-credentials 
+                       last-response="{{feed}}" on-response="feedGotten"></iron-ajax>-->
+            <h3>{{title}}</h3>
+            <iron-list items="{{feeds}}" as="item">
+              <template>
+                <paper-item>{{date(item.date)}}: 
+                  <a href$="{{item.link}}" target="_blank">{{item.title}}</a>
+                </paper-item>
+              </template>
+            </iron-list>
+          </paper-material>
+
+          <section class="app-grid">
+          </section>
+      </section>
+
+  </template> 
+  <script>
+'use strict';
+    
+class HwHome {
+  beforeRegister() {
+    this.is = 'hw-home';
+    this.properties = {
+      // appoint: {type:Object, observer: '_appointGot'},
+      // feed:    {type:Object, observer: '_feedGot'},
+      feeds: {type:Array, value:[]}
+    };
+  }
+  
+  get behaviors(){ return [Polymer.HwBehavior]; }
+
+  view(e){
+    this.route.path=e.target.id;
+  }
+  show(){
+    let xhr=new XMLHttpRequest();
+    xhr.open('GET',`${this.api_url}/external/feed/navar`,false);
+    xhr.overrideMimeType("text/xml");
+    xhr.onloadend = ()=>{
+      this.title=xhr.responseXML.querySelector("title").textContent;
+      xhr.responseXML.querySelectorAll("item").forEach(i=>{
+        this.push('feeds',{
+          date: new Date(i.querySelector("date").textContent),
+          matomeView: i.querySelector("matome_view").textContent,
+          title: i.querySelector("title").textContent,
+          link:  i.querySelector("link").textContent,
+          description: i.querySelector("description").textContent,
+        });
+      });
+    };
+    xhr.send();
+  }
+
+  // /**
+  //  * [Event]
+  //  */
+  // appointGotten(){
+  //   if(moment(this.appoint.startAt).format("YYYYMMDD")
+  //       <=moment().add(5,'days').format("YYYYMMDD")){
+  //     // this.style.color = '#FFEB3B';  //https://www.google.com/design/spec/style/color.html#color-color-palette
+  //     // this.parentNode.style.backgroundColor="#F8BBD0";
+  //     this.updateStyles();
+  //   }
+  // }
+  feedGotten(e,jx){
+    // this.set('feeds',e.detail.response.querySelectorAll("item"));
+  }
+  time(startAt, endAt){
+    return moment(startAt).format('H:m')
+      + ' - '+moment(endAt).format('H:m');
+  }
+}
+
+Polymer(HwHome);
+</script>
+</dom-module>

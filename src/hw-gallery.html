@@ -1,0 +1,88 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../bower_components/iron-image/iron-image.html">
+<link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../bower_components/neon-animation/animations/scale-up-animation.html">
+<link rel="import" href="../bower_components/neon-animation/animations/fade-out-animation.html">
+
+<link rel="import" href="hw-behavior.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="hw-gallery">
+  <template>
+    <style is="custom-style" include="shared-styles iron-flex iron-flex-alignment">
+
+      iron-image.thumb{
+        width:300px; height:300px; background-color: lightgray;
+      }
+      iron-image.selected{
+        margin-top: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+      paper-dialog{
+        position: fixed;
+        max-height: none;
+        overflow: hidden !important;
+      }
+      paper-dialog p{
+        position: absolute;
+        width:100%;
+        height: 100%;
+        margin-top: -50px;
+        color: #fff;
+        background-color: rgba(55,55,55,0.5);
+      }
+
+    </style>
+
+    <iron-ajax url$="[[api_url]]/api/gallery/" handle-as="json" auto
+               headers='{{credential}}' with-credentials 
+               last-response="{{medias}}"></iron-ajax>
+               
+    <section class="flex horizontal around-justified layout cross-fade relative">
+      <div class="vertical">
+        <div class="horizontal center">
+          <template is="dom-repeat" items="{{medias}}">
+            <iron-image class="thumb" sizing="cover" preload fade src="[[item.thumbnail]]"
+                media="[[item]]"
+                placeholder="[[item.description]]"
+                on-click="closeup"></iron-image>
+          </template>
+        </div>
+      </div>
+    </section>
+    <paper-dialog id="modal" heading="" animated
+                  entry-animation="scale-up-animation"
+                  exit-animation="fade-out-animation">
+      <iron-image sizing="contain" src="[[selected.src]]" class="selected"
+                  alt="[[selected.alt]]"></iron-image>
+      <p>[[selected.description]]</p>
+    </paper-dialog>
+  </template>
+<script>
+'use strict';
+
+class HwGallery {
+  beforeRegister() {
+    this.is = 'hw-gallery';
+    this.properties = {
+    };
+  }
+  
+  get behaviors(){ return [Polymer.HwBehavior]; }
+  
+  closeup(e){
+    this.selected=e.currentTarget.media;
+    let modal=document.getElementById("modal");
+    let image=modal.querySelector("iron-image");
+    image.style.height=this.selected.height+'px';
+    image.style.width=this.selected.width+'px';
+    modal.open();
+  }
+}
+
+Polymer(HwGallery);
+</script>
+
+</dom-module>

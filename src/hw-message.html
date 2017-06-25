@@ -1,0 +1,119 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/app-layout/app-grid/app-grid-style.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../bower_components/paper-card/paper-card.html">
+<link rel="import" href="../bower_components/neon-animation/neon-animations.html">
+
+<link rel="import" href="hw-behavior.html">
+<link rel="import" href="shared-styles.html">
+<link href="https://fonts.googleapis.com/earlyaccess/kokoro.css" rel="stylesheet" />
+
+<dom-module id="hw-message" selection-enabled="false">
+  <template>
+    <style is="custom-style" include="shared-styles app-grid-style">
+
+      @media all and (min-width: 0) and (max-width: 600px) and (orientation: portrait) { 
+        :host {
+          --app-grid-columns: 1;
+          --app-grid-gutter: 10px;
+          /*--app-grid-item-height: 120px;*/
+        }
+        paper-card {
+          min-height: 120px;
+          --paper-card-content: {
+            min-height: 104px;
+          }
+        }
+      }
+      @media all and (min-width: 601px){ 
+        :host {
+          --app-grid-columns: 2;
+          --app-grid-gutter: 12px;
+          /*--app-grid-item-height: 100px;*/
+        }
+        paper-card {
+          min-height: 160px;
+          --paper-card-content: {
+            height: 144px;
+          }
+        }
+      }
+
+      .card-actions{
+        text-align: right;
+      }
+      /*.chip-container {
+        text-align: center;
+      }
+      .Chip{
+        font-family: "Kokoro";
+        display: inline-block;
+        position: relative;
+        border-radius: 3px;
+        margin: 4px;
+        padding: 8px;
+        overflow: hidden;
+        text-align: start;
+        border: #3E2723;
+        background: #BCAAA4;
+        color:#fff;
+        width: 200px;
+      }
+      .Chip-top {
+        min-height: 200px;
+        font-size:1rem;
+      }
+      .Chip-bottom {
+        line-height: 1.5;
+        text-align: right;
+        font-size:0.9rem;
+      }*/
+    </style>
+    
+    <iron-ajax id="getMessages" url="[[api_url]]/api/message/" auto
+               headers='{{credential}}' with-credentials
+               last-response="{{messages}}"></iron-ajax>
+               
+    <!--<section class="chip-container layout cross-fade">-->
+      <section class="app-grid">
+      <template is="dom-repeat" items="[[messages]]">
+        <paper-card heading="担当から"
+                    class="">
+          <div class="card-content">[[item.body]]</div>
+          <div class="card-actions"><span>[[formatDatetime(item.sendedAt)]]</span> <span>[[item.title]]</span>
+            <span>[[item.pic.lastName]]</span> <span>[[item.pic.firstName]]</span>
+          </div>
+        </paper-card>
+      </template>
+<!--      <array-selector id="selector" items="{{messages}}" selected="{{selected}}" toggle></array-selector>-->
+    </section>
+  </template>
+<script>
+'use strict';
+
+class HwMessage {
+  beforeRegister() {
+    this.is = 'hw-message';
+    this.properties = {
+      selectedAt: {value:0, notify:true}
+    };
+  }
+  get behaviors(){ return [Polymer.HwBehavior]; }
+got(e){
+  console.log(e);
+}
+  params(selectedAt){
+      return {selectedAt:selectedAt};
+  }
+
+  nl2br(text){
+    return text.replace(/(\r|\n)+/g,'<br>');
+  }
+}
+
+Polymer(HwMessage);
+</script>
+
+</dom-module>

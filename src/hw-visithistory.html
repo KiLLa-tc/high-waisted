@@ -1,0 +1,80 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../bower_components/iron-list/iron-list.html">
+
+<link rel="import" href="hw-behavior.html">
+
+<dom-module id="hw-visithistory">
+  <template>
+    <style is="custom-style" include="shared-styles">
+      :host{
+        display: block;
+      }
+      article{
+        margin: 0 auto;
+        height: 100%;
+        max-width:800px;
+      }
+      .item {
+        padding: 16px 0;  /* 22px;*/
+        border-bottom: 1px solid #DDD;
+        /*width: calc(100% - 32px);*/
+      }
+      .item .flex{
+        margin: 3px; 
+      }
+      .label{
+        height:22px;
+      }
+    </style>
+
+    <iron-ajax url$="[[api_url]]/api/visithistory/" auto handle-as="json"
+               headers='{{credential}}' with-credentials
+               last-response="{{data}}"></iron-ajax>
+    <article id="scroller">
+      <iron-list items="[[data]]" as="item" scroll-target="scroller">
+        <template>
+          <section class="horizontal layout item">
+            <div class="flex">[[timize(item.startAt, item.endAt)]]</div>
+            <div class="flex">[[pic(item.pic)]]</div>
+            <div class="flex layout horizontal wrap">
+              <span class="label Teal" hidden="[[!item.cource.name]]">[[item.cource.name]]</span>
+              <span class="label Purple" hidden="[[!item.cavitation.name]]">[[item.cavitation.name]]</span>
+            </div>
+          </section>
+        </template>
+      </iron-list>
+    </article>
+  </template>
+  
+<script>
+'use strict';
+
+class HwVisithistory {
+  beforeRegister() {
+    this.is = 'hw-visithistory';
+    this.properties = {
+    };
+  }
+  get behaviors(){ return [Polymer.HwBehavior]; }
+
+  timize(startAt, endAt){
+    var s=moment(startAt).format('YY/M/D h:mm');
+    if(startAt===endAt)return s;
+    var e=moment(endAt).format('h:mm');
+    return (s+'〜'+e);
+  }
+  pic(pic){
+    if(!pic)return "";
+    return pic.lastName+ pic.firstName+' ('+pic.picGrade.name+')';
+  }
+//  ,
+//  symbolize:function(cavitation){
+//    return (cavitation)?'◯':'';
+//  }
+}
+
+Polymer(HwVisithistory);
+</script>
+
+</dom-module>

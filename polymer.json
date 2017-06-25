@@ -1,0 +1,31 @@
+{
+  "entrypoint": "index.html",
+  "shell": "src/hw-app.html",
+  "fragments": [
+    "src/hw-appoint.html",
+    "src/hw-checksheet.html",
+    "src/hw-feed.html",
+    "src/hw-free-content.html",
+    "src/hw-gallery.html",
+    "src/hw-graph.html",
+    "src/hw-help.html",
+    "src/hw-home.html",
+    "src/hw-insentive.html",
+    "src/hw-log.html",
+    "src/hw-loyalty-log.html",
+    "src/hw-loyalty.html",
+    "src/hw-message.html",
+    "src/hw-profile.html",
+    "src/hw-visithistory.html"
+  ],
+  "sources": [
+    "src/**/*",
+    "images/**/*",
+    "bower.json"
+  ],
+  "extraDependencies": [
+    "manifest.json",
+    "bower_components/webcomponentsjs/webcomponents-lite.min.js",
+    "bower_components/moment/min/moment.min.js"
+  ]
+}

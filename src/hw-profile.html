@@ -1,0 +1,147 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../bower_components/iron-form/iron-form.html">
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../bower_components/iron-signals/iron-signals.html">
+<link rel="import" href="../bower_components/paper-toast/paper-toast.html">
+<link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-material/paper-material.html">
+<link rel="import" href="../bower_components/paper-radio-group/paper-radio-group.html">
+<link rel="import" href="../bower_components/paper-radio-button/paper-radio-button.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+
+<link rel="import" href="hw-behavior.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="hw-profile">
+  <template>
+    <style is="custom-style" include="shared-styles iron-flex iron-flex-alignment">
+      paper-material{
+        padding: 1rem;
+      }
+      paper-input{
+        margin: 0.5rem;
+      }
+      [type="time"]{
+        width:8rem;
+      }
+      small{
+        margin: 0.5rem;
+        color: #737373;
+      }
+  </style>
+    <!--<iron-localstorage name="hw.credential" value="{{credential}}"></iron-localstorage>-->
+    <iron-ajax headers='{{credential}}' with-credentials auto
+               url="[[api_url]]/api/user/me" handle-as="json"
+               last-response="{{me}}" on-response="calcOld"></iron-ajax>
+
+    <form is="iron-form" id="profileForm" method="POST"
+          action$="[[api_url]]/api/user/me"
+          headers='{{credential}}'
+          on-iron-form-response="complete"
+          on-iron-form-error="failComplete"
+          class="layout vertical center-justified">
+      
+      <paper-material class="layout vertical center-justified">
+
+        <div class="layout horizontal">
+          <small>性別</small>
+          <paper-radio-group attr-for-selected="value" selected="{{me.gender}}">
+            <paper-radio-button name="gender" value="f">女性</paper-radio-button>
+            <paper-radio-button name="gender" value="m">男性</paper-radio-button>
+            <paper-radio-button name="gender" value="u">その他</paper-radio-button>
+          </paper-radio-group>
+        </div>    
+        <div class="layout horizontal">
+          <paper-input type="text" label="姓"  name="lastname"
+                        value="{{me.lastname}}" required></paper-input>
+          <paper-input type="text" label="名"  name="firstname"
+                        value="{{me.firstname}}" required></paper-input>
+        </div>
+        <div class="layout horizontal">
+          <paper-input type="text" label="姓(カナ)" name="lastKana"
+                      value="{{me.lastkana}}" required></paper-input>
+          <paper-input type="text" label="名(カナ)" name="firstKana"
+                      value="{{me.firstkana}}" required></paper-input>
+        </div>
+        <div class="layout horizontal">
+          <paper-input type="date" label="誕生日" name="dateOfBirth"
+                       value="{{me.dateOfBirth}}"></paper-input>
+          <paper-input type="phone" label="電話番号" name="phone"
+                       value="{{me.phone}}"></paper-input>
+        </div>
+        <paper-input type="email" label="メールアドレス" name="email"
+                     value="{{me.email}}"></paper-input>
+        <paper-input type="time" label="一日の開始時刻" name="start_time"
+                     value="{{me.start_time}}"></paper-input>
+
+        <paper-button raised on-click="openDialog">パスワード変更</paper-button>
+        <paper-button raised on-click="submitProfile" class="Blue">OK</paper-button>
+      </paper-material>
+    </form>
+    <paper-dialog>
+      <h2>パスワード変更</h2>
+      <form is="iron-form" id="passwordForm" method="POST"
+            action$="[[api_url]]/api/user/password"
+            headers='{{credential}}'
+            on-iron-form-response="complete"
+            on-iron-form-error="failComplete"
+            class="layout vertical center-justified">
+        <paper-input type="text" label="現在のパスワード" name="password"
+                    value="{{password}}" reqired></paper-input>
+        <paper-input type="text" label="新しいパスワード" name="nuPassword"
+                    value="{{nuPassword}}" reqired></paper-input>
+        <paper-input type="text" label="確認" name="confirmnuPassword"
+                    value="{{confirmnuPassword}}" reqired></paper-input>
+        <div class="layout horizontal">            
+          <paper-button raised on-click="closeDialog">CANCEL</paper-button>
+          <paper-button raised on-click="submitPass" class="Blue">OK</paper-button>
+        </div>
+      </form>
+    </paper-dialog>
+
+  </template>
+<script>
+'use strict';
+
+class HwProfile {
+  beforeRegister() {
+    this.is = 'hw-profile';
+    this.properties = {
+    };
+  }
+  
+  get behaviors(){ return [Polymer.HwBehavior]; }
+  openDialog(){
+    this.$$("paper-dialog").open();
+  }
+  closeDialog(){
+    this.$$("paper-dialog").close();
+  }
+  calcOld(){
+    this.set("me.dateOfBirth", 
+      moment(this.me.dateOfBirth).format("Y-MM-DD"));
+  }
+  validate(){
+    return Boolean(this.nuPassword===this.confirmnuPassword);
+  }
+  submitProfile(){
+    this.$.profileForm.submit();
+  }
+  submitPass(){
+    this.$.passwordForm.submit();
+  }
+  
+  complete(e,res){
+    this.fire("iron-signal", {name:"message", data:"変更しました。"});
+    this.closeDialog();
+  }
+  failComplete(e,res){
+    this.fire("iron-signal", {name:"message", data:"変更できません。内容に誤りがあります。"});
+  }
+}
+
+Polymer(HwProfile);
+</script>
+</dom-module>

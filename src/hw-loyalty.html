@@ -1,0 +1,67 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../bower_components/paper-tabs/paper-tabs.html">
+
+<link rel="import" href="hw-behavior.html">
+<link rel="import" href="hw-insentive.html">
+<link rel="import" href="hw-loyalty-log.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="hw-loyalty">
+
+  <template>
+    <style is="custom-style" include="shared-styles">
+      :host{
+        margin: 0;
+        width: 100%;
+      }
+      iron-pages > *{
+        padding-left: 1rem; 
+        padding-right: 1rem; 
+      }
+    </style>
+    
+    <paper-tabs selected="{{selected}}" class="horizontal layout">
+      <paper-tab>ポイント履歴</paper-tab>
+      <paper-tab>貯める</paper-tab>
+    </paper-tabs>
+    <iron-pages selected="{{selected}}">
+      <div class="center layout">
+        <hw-loyalty-log params="{{params}}" hash="[[hash]]"></hw-loyalty-log>
+      </div>
+      <div class="center layout">
+        <hw-insentive params="{{params}}"></hw-insentive>
+      </div>
+    </iron-pages>
+  </template>
+  <script>
+'use strict';
+
+class HwLoyalty {
+  beforeRegister() {
+    this.is = 'hw-loyalty';
+    this.properties = {
+      selected:   {value:0,observer:'_switchTab'},
+      hash:       { type:String, reflectToAttribute:true},
+      selectedAt: {value:0, notify:true},
+      params:     {value:{},notify:true}
+    };
+  }
+  
+  get behaviors(){ return [Polymer.HwBehavior]; }
+
+  _switchTab(){
+    this.set("params",{
+      selectedAt: new Date().getTime()
+    });
+  }
+  ready(){
+    if(this.hash!==null)
+      this.set("selectedTab",1);
+  }
+}
+
+Polymer(HwLoyalty);
+  </script>
+</dom-module>
+

@@ -1,0 +1,58 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../bower_components/paper-tabs/paper-tabs.html">
+
+<link rel="import" href="hw-behavior.html">
+<link rel="import" href="hw-visithistory.html">
+<link rel="import" href="hw-graph.html">
+<link rel="import" href="hw-gallery.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="hw-log">
+
+  <template>
+    <style is="custom-style" include="shared-styles">
+      :host{
+        margin: 0;
+        width: 100%;
+      }
+      iron-pages > *{
+        margin: 1rem;
+      }
+    </style>
+
+    <paper-tabs selected="{{selected}}" scrollable fit-container>
+      <paper-tab>グラフ</paper-tab>
+      <paper-tab>来院履歴</paper-tab>
+      <paper-tab>写真</paper-tab>
+    </paper-tabs>
+    <iron-pages selected="{{selected}}">
+        <!-- graph -->
+        <hw-graph></hw-graph>
+        <hw-visithistory></hw-visithistory>
+        <!-- picture -->
+        <hw-gallery></hw-gallery>
+    </iron-pages>
+  </template> 
+  <script>
+'use strict';
+    
+class HwLog {
+  beforeRegister() {
+    this.is = 'hw-log';
+    this.properties = {
+      selected: {value:0},
+      selectedAt: {value:0, notify:true}
+    };
+  }
+  
+  get behaviors(){ return [Polymer.HwBehavior]; }
+
+  params(selectedAt){
+    return {selectedAt:selectedAt};
+  }
+}
+
+Polymer(HwLog);
+</script>
+</dom-module>

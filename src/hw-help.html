@@ -1,0 +1,44 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<link rel="import" href="../bower_components/paper-material/paper-material.html">
+
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="hw-help">
+  <template>
+    <style is="custom-style" include="shared-styles">
+      paper-material{
+        padding: 1rem;
+        margin: 10px;
+      }
+    </style>
+    <paper-material>
+      <h3>予約について</h3>
+      <p></p>
+    </paper-material>
+    <paper-material>
+      <h3>メッセージについて</h3>
+      <p></p>
+    </paper-material>
+    <paper-material>
+      <h3>ポイントについて</h3>
+      <p></p>
+    </paper-material>
+  </template>
+  <script>
+  'use strict';
+
+  class HwHelp {
+    beforeRegister() {
+      this.is = 'hw-help';
+      this.properties = {
+        
+      }
+    }
+  };
+
+  Polymer(HwHelp);
+
+  </script>
+</dom-module>
+

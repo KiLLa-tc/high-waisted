@@ -1,0 +1,52 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../bower_components/google-chart/google-chart.html">
+
+<link rel="import" href="hw-behavior.html">
+<link rel="import" href="shared-styles.html">
+
+<script src="../bower_components/moment/min/moment.min.js"></script>
+<dom-module id="hw-graph">
+  <template>
+    <style is="custom-style" include="shared-styles">
+      google-chart {
+        width:100%;
+        min-height: 400px;
+      }
+    </style>
+    
+    <iron-ajax url="[[api_url]]/api/visithistory/"
+               headers='{{credential}}' handle-as="json" auto
+               on-response="historiesGotten"></iron-ajax>
+    <google-chart type="line" 
+                  cols='[[cols]]' rows='[[rows]]'></google-chart>
+  </template>
+<script>
+'use strict';
+
+class HwGraph {
+  beforeRegister() {
+    this.is = 'hw-graph';
+    this.properties = {
+      rows: Array,
+      cols: {type:Array, readonly:true, value:[
+        {"label":"来店日", "type":"string"},
+        {"label":"ふくらはぎ", "type":"number"}, 
+        {"label":"ふともも", "type":"number"}
+      ]},
+      // histories:{type:Array, observer:'_historiesGot'}
+    };
+  }
+  
+  get behaviors(){ return [Polymer.HwBehavior]; }
+  
+  historiesGotten(e){
+    this.set('rows', e.detail.response.map(d=>{
+        return [moment(d.startAt).format("YY/M/D"), d.calf, d.tigh];
+      }, this).reverse()); 
+  }
+}
+Polymer(HwGraph);
+</script>
+
+</dom-module>

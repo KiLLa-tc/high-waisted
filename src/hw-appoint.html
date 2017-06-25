@@ -1,0 +1,67 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../bower_components/iron-meta/iron-meta.html">
+
+<link rel="import" href="hw-behavior.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="hw-appoint">
+  <template>
+    <style is="custom-style" include="shared-styles">
+      table{
+          margin-bottom: 0;
+      }
+    </style>
+    <iron-ajax url$="[[api_url]]/api/visithistory/next" handle-as="json" auto
+               headers='{{credential}}' with-credentials
+               last-response="{{appoint}}" on-response="appointGotten"></iron-ajax>
+
+    <template is="dom-if" if="{{!appoint}}">
+      次回のご予約がありません。
+    </template>
+    <template is="dom-if" if="{{appoint}}">
+      <table class="table table-condensed">
+        <tr><th>予約日</th><td>[[date(appoint.startAt)]]</td></tr>
+        <tr><th>時間</th><td>[[time(appoint.startAt,appoint.endAt)]]</td></tr>
+        <tr><th>担当</th><td>
+          <span>[[appoint.pic.picGrade.name]]</span>&nbsp;
+          <span>[[appoint.pic.lastName]]</span><span>[[appoint.pic.firstName]]</span>
+          </td>
+        </tr>
+      </table>
+    </template>
+  </template>
+<script>
+'use strict';
+
+class HwAppoint {
+  beforeRegister() {
+    this.is = 'hw-appoint';
+    this.properties = {
+      // appoint:{ 
+      //   type:Object, value:null,
+      //   observer: '_appointGot'
+      // }
+    };
+  }
+  get behaviors(){ return [Polymer.HwBehavior]; }
+  /**
+   * [Event]
+   */
+  appointGotten(e){
+    if(moment(this.appoint.startAt).format("YYYYMMDD")
+        <=moment().add(5,'days').format("YYYYMMDD")){
+      this.style.color = '#FFEB3B';  //https://www.google.com/design/spec/style/color.html#color-color-palette
+      this.parentNode.style.backgroundColor="#F8BBD0";
+      this.updateStyles();
+    }
+  }
+  time(startAt, endAt){
+    return moment(startAt).format('H:m')
+      + ' - '+moment(endAt).format('H:m');
+  }
+}
+
+Polymer(HwAppoint);
+  </script>
+</dom-module>

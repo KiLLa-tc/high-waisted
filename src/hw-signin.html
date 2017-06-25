@@ -1,0 +1,81 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-localstorage/iron-localstorage.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../bower_components/iron-form/iron-form.html">
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<!--<link rel="import" href="../bower_components/iron-iconset/iron-iconset.html">-->
+<link rel="import" href="../bower_components/iron-signals/iron-signals.html">
+
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-toast/paper-toast.html">
+<link rel="import" href="hw-behavior.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="hw-signin">
+  <template>
+    <style is="custom-style" include="shared-styles iron-flex iron-flex-alignment">
+      .page{
+        padding: 1rem;
+        background: #fff;
+      }
+    </style>
+    <section class="page">
+      <form is="iron-form" id="signinForm" method="POST"
+            action$="[[api_url]]/api/user/token"
+            on-iron-form-response="complete"
+            on-iron-form-error="fail">
+        <h3>サインインする</h3>
+        <div class="horizontal-section">
+          <paper-input name="username" label="ユーザID" required></paper-input>
+          <paper-input name="password" type="password" label="パスワード" required></paper-input>
+        </div>
+        <br>
+        <div class="layout horizontal center-justified">
+          <paper-button raised on-click="submit" class="Blue">
+            <iron-icon icon="check"></iron-icon>サインイン
+          </paper-button>
+        </div>
+        <div class="layout horizontal center-justified">
+          <a target="_blank" href$="{{baseUrl}}resetting/request">パスワードを忘れましたか？</a>
+        </div>
+      </form>
+      <!--<paper-toast id="errorMessage" text="入力に間違いがあります。" duration="5000"></paper-toast>-->
+    </section>
+    <iron-localstorage name="hw.credential" value="{{credential}}"></iron-localstorage>
+  </template>
+<script>
+'use strict';
+
+class HwSignin {
+  beforeRegister() {
+    this.is = 'hw-signin';
+    this.properties = {
+      credential:{type:Object, value:{}}
+    };
+  }
+  get behaviors(){ return [Polymer.HwBehavior]; }
+
+  submit(e){
+    this.$$('[is="iron-form"]').submit();
+  }
+  complete(e){
+    localStorage.setItem("hw.credential", JSON.stringify({
+      "x-auth-token":e.detail.response.apiKey
+    }));
+    // this.set("hw.credential", {
+    //   "x-auth-token": e.detail.response.apiKey
+    // });
+    location.href="./";
+  }
+  fail(e,ajx){
+    this.fire('iron-signal', {name: "message", data: "入力に間違いがあります。"});
+    // this.$.errorMessage.show();
+  }
+}
+
+Polymer(HwSignin);
+</script>
+
+</dom-module>
